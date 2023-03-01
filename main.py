@@ -33,7 +33,6 @@ def check_input(command: list) -> str | None:  # should raise exception if error
 def command_parser(command: str, flags: list) -> None:
     """has logic for selecting correct action based on parsed command"""
     match command:
-
         case 'login':
             try:
                 if len(flags) != 4:
@@ -89,6 +88,12 @@ def command_parser(command: str, flags: list) -> None:
                 flag, args = getopt.getopt(flags, "a:")
             except:
                 raise ValueError("Incorrect Flags")
+            
+            for option, argument in flag:  
+                #raise exception if amount is non numberic
+                if option == '-a':
+                    if not argument.isnumeric():
+                        raise ValueError("Deposit amount is invalid")
         case 'check':
             pass
 
@@ -107,6 +112,12 @@ def command_parser(command: str, flags: list) -> None:
                 flag, args = getopt.getopt(flags, "a:")
             except:
                 raise ValueError("Incorrect Flags")
+            
+            for option, argument in flag:  
+                #raise exception if amount is non numberic
+                if option == '-a':
+                    if not argument.isnumeric():
+                        raise ValueError("Amount is invalid")
 
 
 
