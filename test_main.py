@@ -173,20 +173,11 @@ class TestCLIHandlingOfMain:
         with pytest.raises(ValueError, match="Withdraw amount should divisible by 100"):
             command_parser(command, ['-a', 'werwer']) #amount should be numbers only
 
-    def test_program_should_raise_value_error_if_withdraw_amount_is_not_divisible_by_100(self):
-        """Exception raised when not divisible by 100 or invalid"""
-        command = check_input("withdraw")
-        with pytest.raises(ValueError, match="Withdraw amount should divisible by 100"):
-            command_parser(command, ['-a', '2304']) #amount is not divisible by 100
-        with pytest.raises(ValueError, match="Withdraw amount should divisible by 100"):
-            command_parser(command, ['-a', 'werwer']) #amount should be numbers only
-
     def test_program_should_raise_value_error_if_deposit_amount_is_invalid(self):
         """Exception raised when deposit is invalid"""
         command = check_input("deposit")
         with pytest.raises(ValueError, match="Deposit amount is invalid"):
             command_parser(command, ['-a', '-2304']) #amount should be numberic
-
     
     def test_program_should_raise_value_error_if_pay_bills_amount_is_invalid(self):
         """Exception raised when pay bill amount is invalid"""
@@ -198,3 +189,4 @@ class TestCLIHandlingOfMain:
         """dummy test to clean up created files"""
         if os.path.exists(SESSION_FILE):
             os.remove(SESSION_FILE)
+
