@@ -104,6 +104,11 @@ def command_parser(command: str, flags: list) -> None:
                 flag, args = getopt.getopt(flags, "p:")
             except:
                 raise ValueError("Incorrect Flags")
+            
+            for option, argument in flag:  #checks if PIN is 6 digits long and numeric
+                if option == '-p':
+                    if len(argument) != 6 or not argument.isnumeric():
+                        raise ValueError("PIN should be 6 digits long")
 
         case 'pay':
             if len(flags) != 2:

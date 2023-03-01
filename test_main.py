@@ -145,14 +145,24 @@ class TestCLIHandlingOfMain:
         assert exc_info.type is ValueError
         assert exc_info.value.args[0] == "Incorrect Flags"
 
-    def test_program_should_raise_value_error_if_PIN_in_create_account_is_not_6_and_not_all_numeric(self):
-        """Checks if pin is valid"""
+    def test_program_should_raise_value_error_if_pin_in_create_account_is_invalid(self):
+        """Checks if pin is valid. Pin should be 6 digits and numeric"""
         command = check_input("create")
         with pytest.raises(ValueError, match="PIN should be 6 digits long") as exc_info:
             command_parser(command, ['-n', 'first', '-l', 'last', '-p','12345'])
             #PIN is only 5 digits
         with pytest.raises(ValueError, match="PIN should be 6 digits long") as exc_info:
             command_parser(command, ['-n', 'first', '-l', 'last', '-p','asdsad'])
+            #PIN isn't only numeric characters
+
+    def test_program_should_raise_value_error_if_pin_in_change_pin_is_invalid(self):
+        """Checks if pin is valid. Pin should be 6 digits and numeric"""
+        command = check_input("change")
+        with pytest.raises(ValueError, match="PIN should be 6 digits long") as exc_info:
+            command_parser(command, ['-p','12345'])
+            #PIN is only 5 digits
+        with pytest.raises(ValueError, match="PIN should be 6 digits long") as exc_info:
+            command_parser(command, ['-p','asdsad'])
             #PIN isn't only numeric characters
 
     def test_program_should_raise_value_error_if_withdraw_amount_is_not_divisible_by_100(self):
@@ -162,7 +172,15 @@ class TestCLIHandlingOfMain:
             command_parser(command, ['-a', '2304']) #amount is not divisible by 100
         with pytest.raises(ValueError, match="Withdraw amount should divisible by 100"):
             command_parser(command, ['-a', 'werwer']) #amount should be numbers only
-    
+
+    def test_program_should_raise_value_error_if_withdraw_amount_is_not_divisible_by_100(self):
+        """Exception raised when not divisible by 100 or invalid"""
+        command = check_input("withdraw")
+        with pytest.raises(ValueError, match="Withdraw amount should divisible by 100"):
+            command_parser(command, ['-a', '2304']) #amount is not divisible by 100
+        with pytest.raises(ValueError, match="Withdraw amount should divisible by 100"):
+            command_parser(command, ['-a', 'werwer']) #amount should be numbers only
+
     def test_program_should_raise_value_error_if_deposit_amount_is_invalid(self):
         """Exception raised when deposit is invalid"""
         command = check_input("deposit")
@@ -175,8 +193,6 @@ class TestCLIHandlingOfMain:
         command = check_input("pay")
         with pytest.raises(ValueError, match="Amount is invalid"):
             command_parser(command, ['-a', '-2304']) #amount should be numberic
-
-
 
     def test_clean_up(self):
         """dummy test to clean up created files"""
