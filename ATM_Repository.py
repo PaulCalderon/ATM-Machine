@@ -55,13 +55,26 @@ def table_init():
 
 class AtmCommands:
     """Methods for ATM Command"""
+    @staticmethod
+    def login(account_id, input_pin):
+        engine, Base, Accounts, Transactions = table_init()
+        with Session(engine) as session:
+            retrieved_data = session.get(Accounts, account_id)
 
-    def login(self):
-        pass
+        if retrieved_data.pin == input_pin:
+            config = configparser.ConfigParser()
+            config.add_section("account")
+            config.set("account", "id", account_id)
+            with open(SESSION_FILE, 'w') as example:
+                config.write(example)
 
+        else:
+
+            raise ValueError("PIN is incorrect")
+        
     @staticmethod
     def create_account(name, lastname, pin):  #can be modified to accept ORM object instead of individual fields
-        
+
         engine, Base, Accounts, Transactions = table_init()
         create_user = Accounts(name=name, lastname=lastname, pin=pin)
         with Session(engine) as session:

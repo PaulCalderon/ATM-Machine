@@ -1,12 +1,6 @@
 import pytest
-from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, DeclarativeBase
-from sqlalchemy import String, ForeignKey
-from typing import List, Optional
-from typing import Optional
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import relationship
+
 import configparser
 import os
 
@@ -22,17 +16,10 @@ for data in option: # gets config option for session_file
         SESSION_FILE = option.get(data)
     if data =='atm_table':
         ATM_DB = option.get(data)
-
 make_config("test.db", "session.txt") # changes database to test.db
 
 from ATM_Repository import AtmCommands, table_init
 
-def test_program_should_create_session_file_on_sucessful_login():
-    raise NotImplementedError
-
-def test_program_should_have_details_in_login_in_the_session_file():
-    raise NotImplementedError
-        
 def test_program_should_create_entry_upon_calling_the_function():
     name = "Paul"
     lastname = "August"
@@ -47,6 +34,26 @@ def test_program_should_create_entry_upon_calling_the_function():
     assert submitted_data.name == retrieved_data.name
     assert submitted_data.lastname == retrieved_data.lastname
     assert submitted_data.pin == retrieved_data.pin
+
+def test_program_should_have_details_in_login_in_the_session_file():
+    account_id = "1"
+    pin = "123456"
+
+    AtmCommands.login(account_id, pin)
+
+    config_data.read("session.txt")
+    option = config_data["account"]
+    for data in option:
+        if data == 'id':
+            active_id = option.get(data)
+    assert active_id == '1'
+        
+def test_program_should_have_raise_error_if_login_fails():
+    account_id = "1"
+    incorrect_pin = "123452"
+    with pytest.raises(ValueError, match="PIN is incorrect"):    
+        AtmCommands.login(account_id, incorrect_pin)
+    
 
 def test_program_should_raise_error_if_balance_is_insufficient_upon_withdraw():
     raise NotImplementedError
@@ -77,6 +84,7 @@ def test_clean_up():
     try:
         if os.path.exists(SESSION_FILE):
             os.remove(SESSION_FILE)
+            
         if os.path.exists("test.db"):
             os.remove("test.db")  #idk how to fix. DBAPI connection is not closed upon closing of session
     finally:
