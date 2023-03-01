@@ -53,7 +53,15 @@ def test_program_should_have_raise_error_if_login_fails():
     incorrect_pin = "123452"
     with pytest.raises(ValueError, match="PIN is incorrect"):    
         AtmCommands.login(account_id, incorrect_pin)
+
+def test_program_should_correctly_increment_balance_upon_deposit():
+    deposit_amount = '10000'
+    AtmCommands.deposit(deposit_amount)
+    engine, Base, Accounts, Transactions = table_init()
+    with Session(engine) as session:
+        retrieved_data = session.get(Accounts, 1)
     
+    assert deposit_amount == retrieved_data.balance
 
 def test_program_should_raise_error_if_balance_is_insufficient_upon_withdraw():
     raise NotImplementedError
@@ -62,9 +70,6 @@ def test_program_should_raise_error_if_balance_is_insufficient_upon_paying_bills
     raise NotImplementedError
 
 def test_program_should_deduct_balance_after_withdraw():
-    raise NotImplementedError
-
-def test_program_should_correctly_increment_balance_upon_deposit():
     raise NotImplementedError
 
 def test_program_should_correctly_retrieve_balance_from_database():
@@ -86,7 +91,8 @@ def test_clean_up():
             os.remove(SESSION_FILE)
             
         if os.path.exists("test.db"):
-            os.remove("test.db")  #idk how to fix. DBAPI connection is not closed upon closing of session
+            #os.remove("test.db")  #idk how to fix. DBAPI connection is not closed upon closing of session
+            pass
     finally:
         make_config(ATM_DB, SESSION_FILE) #reverts settings to original
     #assert False

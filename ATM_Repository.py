@@ -83,12 +83,20 @@ class AtmCommands:
             session.commit()
 
         
-
-    def withdraw(self):
+    @staticmethod
+    def withdraw():
         pass
 
-    def deposit(self):
-        pass
+    @staticmethod
+    def deposit(deposit_amount):
+        engine, Base, Accounts, Transactions = table_init()
+        with Session(engine) as session:
+            deposit_balance = session.get(Accounts, 1)
+            deposit_balance.balance = deposit_amount
+            session.flush()
+            session.commit()
+        
+
 
     def check_balance(self):
         pass
