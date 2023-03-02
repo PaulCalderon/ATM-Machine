@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session, DeclarativeBase
 from io import StringIO
 import configparser
 import os
-
+from ATM_Repository import AtmCommands, TransactionsDatabase, table_init
 from configmaker import make_config
 
 
@@ -16,9 +16,11 @@ for data in option: # gets config option for session_file
         SESSION_FILE = option.get(data)
     if data =='atm_table':
         ATM_DB = option.get(data)
+
+
 make_config("test.db", "session.txt") # changes database to test.db
 
-from ATM_Repository import AtmCommands, TransactionsDatabase, table_init
+
 class TestAtmCommands:
 
     def test_program_should_create_entry_upon_calling_the_function(self):
@@ -35,7 +37,7 @@ class TestAtmCommands:
         assert submitted_data.name == retrieved_data.name
         assert submitted_data.lastname == retrieved_data.lastname
         assert submitted_data.pin == retrieved_data.pin
-
+        
     def test_program_should_have_details_in_login_in_the_session_file(self):
         account_id = "1"
         pin = "123456"
@@ -48,7 +50,7 @@ class TestAtmCommands:
             if data == 'id':
                 active_id = option.get(data)
         assert active_id == '1'
-            
+
     def test_program_should_have_raise_error_if_login_fails(self):
         account_id = "1"
         incorrect_pin = "123452"
@@ -162,13 +164,10 @@ class TestTransactionDatabase:
             first_transaction = session.get(Transactions, 1 )
         assert first_transaction.account_id == 1
         assert first_transaction.type_of_transaction == 'Create Account'
-        
-        
-    
-
 
 def test_clean_up():
     """dummy test to clean up created files"""
+    
     try:
         if os.path.exists(SESSION_FILE):
             os.remove(SESSION_FILE)
@@ -176,8 +175,10 @@ def test_clean_up():
         if os.path.exists("test.db"):
             os.remove("test.db")  #idk how to fix. DBAPI connection is not closed upon closing of session #fixed by changing setting of SQLalchemy to nullpool
             
+            
     finally:
         make_config(ATM_DB, SESSION_FILE) #reverts settings to original
+        
     #assert False
 
         # assert False

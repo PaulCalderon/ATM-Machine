@@ -15,7 +15,7 @@ from datetime import datetime
 #TODO use config parser to create the session file with details
 
 
-CONFIG = "config.ini"
+CONFIG = "config.ini"  #had a problem here. Ano best way to deal with getting settings from config file
 config_data = configparser.ConfigParser()
 config_data.read(CONFIG)
 option = config_data["options"]
@@ -26,6 +26,8 @@ for data in option: # gets config option for session_file
         ATM_DB = option.get(data)
 
 def table_init():
+    #print(ATM_DB)
+    InternalMethods.get_updated_config() #work around for tests
     engine = create_engine("sqlite+pysqlite:///" + ATM_DB, echo=False, poolclass=NullPool)
     class Base(DeclarativeBase):
         pass
@@ -75,10 +77,9 @@ class AtmCommands:
             raise ValueError("PIN is incorrect")
         transaction_type = "Login"
         TransactionsDatabase.record_transaction(transaction_type, account_id)
-        
+
     @staticmethod
     def create_account(name: str, lastname: str , pin: str)  -> None:  #can be modified to accept ORM object instead of individual fields
-
         engine, Base, Accounts, Transactions = table_init()
         create_user = Accounts(name=name, lastname=lastname, pin=pin)
         with Session(engine) as session:
@@ -87,10 +88,9 @@ class AtmCommands:
             account_id = create_user.account_id
             session.commit()
         transaction_type = "Create Account"
-        
+
         TransactionsDatabase.record_transaction(transaction_type, account_id)
 
-        
     @staticmethod
     def withdraw(withdraw_amount: str) -> str:
         account_id = InternalMethods.get_active_session_id()
@@ -104,14 +104,12 @@ class AtmCommands:
                 current_balance.balance = int(current_balance.balance) - withdraw_amount
                 new_balance = str(current_balance.balance)
                 session.commit()
-                
             else:
                 raise ValueError("Insufficient Balance")
             #ask to print recipt
         transaction_type = "Withdraw"
         TransactionsDatabase.record_transaction(transaction_type, account_id, withdraw_amount)
         return account_id, old_balance, new_balance
-        
 
     @staticmethod
     def deposit(deposit_amount: str) -> None:
@@ -124,7 +122,6 @@ class AtmCommands:
             session.commit()
         transaction_type = "Deposit"
         TransactionsDatabase.record_transaction(transaction_type, account_id, deposit_amount)
-        
 
     @staticmethod
     def check_balance() -> str:
@@ -133,7 +130,7 @@ class AtmCommands:
         with Session(engine) as session:
             current_balance = session.get(Accounts, account_id)
         transaction_type = "Check Balance"
-        
+
         TransactionsDatabase.record_transaction(transaction_type, account_id)
         return current_balance.balance
 
@@ -166,11 +163,11 @@ class AtmCommands:
                     #call receipt function
             else:
                 raise ValueError("Insufficient Balance")
-            
+
         transaction_type = "Change Pin"
         TransactionsDatabase.record_transaction(transaction_type, account_id, pay_amount)
         return account_id, old_balance, new_balance
-    
+
     @staticmethod
     def logout()  -> None:
         if os.path.exists(SESSION_FILE):
@@ -178,8 +175,6 @@ class AtmCommands:
             os.remove(SESSION_FILE)
         transaction_type = "Logout"
         TransactionsDatabase.record_transaction(transaction_type, account_id)
-        
-
 
 class TransactionsDatabase:
     @staticmethod
@@ -198,10 +193,7 @@ class TransactionsDatabase:
             session.flush()
             session.commit()
 
-
-        
 class InternalMethods:
-
     @staticmethod
     def get_active_session_id() -> str:
         config_data.read(SESSION_FILE)
@@ -209,6 +201,25 @@ class InternalMethods:
         for data in option:
             if data == 'id':
                 return option.get(data)
+    
+    @staticmethod
+    def get_updated_config() -> None:  #for testing purposes
+        config_data = configparser.ConfigParser()
+        config_data.read(CONFIG)
+        option = config_data["options"]
+        for data in option: # gets config option for session_file
+            if data == 'session_file':
+                global SESSION_FILE 
+                SESSION_FILE = option.get(data)
+            if data =='atm_table':
+                global ATM_DB
+                ATM_DB = option.get(data)
+
+
+
+    
+
+
 
     # @staticmethod
     # def receipt_output(id: str, old_balance: str, new_balance: str):
