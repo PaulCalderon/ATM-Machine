@@ -2,6 +2,7 @@ import sys
 import os
 import getopt
 import configparser
+from ATM_Repository import AtmCommands
 
 CONFIG = "config.ini"
 
@@ -21,47 +22,83 @@ def check_input(command: list) -> str | None:  # should raise exception if error
     """parses and checks CLI input"""
 
     if os.path.exists(SESSION_FILE): #checks if session file exists
-        command_list = ["login", "create", "help", "logout", "withdraw", "deposit", "check", "change", "pay"]
+        command_list = ["login", "create", "help", "withdraw", "deposit", "check", "change", "pay", "logout"]
     else:
-        command_list = ["login", "create", "help", "logout"]
+        command_list = ["login", "create", "help"]
 
     if command.lower() in command_list:
         return command.lower()
     else:
         raise ValueError("Command is invalid")
 
-def command_parser(command: str, flags: list) -> None:
+def command_parser(command: str, *flags: list | None) -> None:
     """has logic for selecting correct action based on parsed command"""
+    if len(flags) > 0:
+        flags = list(flags[0])
+            #converts tuple to list. this is because of *flags to facilitate variable arguemnts
     match command:
         case 'login':
             try:
                 if len(flags) != 4:
                     raise ValueError
                 flag, args = getopt.getopt(flags, "u:p:")
+
             except:
                 print("Syntax should be login -u <ID> -p <PIN> ")
                 raise ValueError("Incorrect Flags")
 
-        case 'create':
+            for option, argument in flag:
+                if option == '-u':
+                    account_id = argument
+                elif option == '-p':
+                    pin = argument
+            AtmCommands.login(account_id, pin)
+
+        case 'create': #need some workaround to create transaction entry for this
             try:
                 if len(flags) != 6:
                     raise ValueError
+
                 flag, args = getopt.getopt(flags, "n:l:p:")
             except:
                 print("Syntax should be create -n <name> -l <last name> -p <PIN> ")
                 raise ValueError("Incorrect Flags")
 
             for option, argument in flag:  #checks if PIN is 6 digits long and numeric
-
                 if option == '-p':
                     if len(argument) != 6 or not argument.isnumeric():
                         raise ValueError("PIN should be 6 digits long")
 
-        case 'help':
-            pass
+            for option, argument in flag:
+                if option == '-n':
+                    name = argument
+                elif option == '-l':
+                    lastname = argument
+                elif option == '-p':
+                    pin = argument
+            AtmCommands.create_account(name, lastname, pin)
 
-        case 'logout':
-            pass
+        case 'help':
+            if os.path.exists(SESSION_FILE):
+
+                print("Available Commands:")
+                print("Create - Creates a new account")
+                print("Login - Login to your account and start a session")
+                print("Withdraw")
+                print("Deposit")
+                print("Check")
+                print("Change")
+                print("Pin")
+                print("Pay")
+                print("History")
+                print("Logout")
+                print("Help - Displays this help prompt")
+
+            else:
+                print("Available Commands:")
+                print("Create - Creates a new account")
+                print("Login - Login to your account and start a session")
+                print("Help - Displays this help prompt")
 
         case 'withdraw': #need to be divisible by 100
             try:
@@ -80,6 +117,11 @@ def command_parser(command: str, flags: list) -> None:
 
                     if int(argument) % 100 != 0:
                         raise ValueError("Withdraw amount should divisible by 100")
+            
+            for option, argument in flag:
+                if option == '-a':
+                    amount = argument
+            AtmCommands.withdraw(amount)
 
         case 'deposit':
             try:
@@ -94,8 +136,16 @@ def command_parser(command: str, flags: list) -> None:
                 if option == '-a':
                     if not argument.isnumeric():
                         raise ValueError("Deposit amount is invalid")
+            
+            for option, argument in flag:
+                if option == '-a':
+                    amount = argument
+            AtmCommands.deposit(amount)
+
         case 'check':
-            pass
+            amount = AtmCommands.check_balance()
+            #TODO complete display here 
+            print("Current Balance: ", amount)
 
         case 'change':
             try:
@@ -109,6 +159,11 @@ def command_parser(command: str, flags: list) -> None:
                 if option == '-p':
                     if len(argument) != 6 or not argument.isnumeric():
                         raise ValueError("PIN should be 6 digits long")
+            
+            for option, argument in flag:
+                if option == '-p':
+                    pin = argument
+            AtmCommands.change_pin(pin)
 
         case 'pay':
             if len(flags) != 2:
@@ -123,7 +178,17 @@ def command_parser(command: str, flags: list) -> None:
                 if option == '-a':
                     if not argument.isnumeric():
                         raise ValueError("Amount is invalid")
+                    
+            for option, argument in flag:
+                if option == '-p':
+                    amount = argument
+            AtmCommands.pay_bills(amount)
 
+        case 'history':
+            raise NotImplementedError
+        
+        case 'logout':
+            AtmCommands.logout()
 
 
 if __name__ == "__main__":

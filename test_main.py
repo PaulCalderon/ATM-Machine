@@ -27,12 +27,12 @@ class TestCLIHandlingOfMain:
         assert check_input("CREATE")
         assert check_input("LOgin")
         assert check_input("HELp")
-        assert check_input("logout")
 
     def test_program_should_accept_all_commands_as_valid_if_session_file_exists(self):
         """All commands should be valid"""
         with open(SESSION_FILE, "w") as file:  #used to create session_file to simulate open session
             pass
+        assert check_input("logout")
         assert check_input("Check")
         assert check_input("Pay")
         assert check_input("deposit")
@@ -184,6 +184,14 @@ class TestCLIHandlingOfMain:
         command = check_input("pay")
         with pytest.raises(ValueError, match="Amount is invalid"):
             command_parser(command, ['-a', '-2304']) #amount should be numberic
+    
+    def test_program_should_be_able_to_display_help_prompt(self):
+        command = check_input("help")
+        command_parser(command) #will raise error if not handled
+        
+    
+    def test_program_should_be_able_to_retrieve_history_of_past_transactions(self):
+        raise NotImplementedError
 
     def test_clean_up(self):
         """dummy test to clean up created files"""
