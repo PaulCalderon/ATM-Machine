@@ -9,6 +9,7 @@ from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from sqlalchemy.pool import NullPool
 import configparser
+from datetime import datetime
 
 #TODO HELP() will check if session file is present before choosing appropriate help prompt
 #TODO use config parser to create the session file with details
@@ -42,9 +43,9 @@ def table_init():
         __tablename__ = "Transactions"
         id: Mapped[int] = mapped_column(primary_key=True)  #transaction ID
         type_of_transaction: Mapped[str]
-        amount_in_trasaction: Mapped[str]
+        amount_in_transaction: Mapped[Optional[str]]
         account_id = mapped_column(ForeignKey("Accounts.account_id"))
-        data: Mapped[str]
+        date: Mapped[str]
         accounts: Mapped[Accounts] = relationship(back_populates="transaction")
     with Session(engine) as session:
         Base.metadata.create_all(engine)
@@ -154,6 +155,25 @@ class AtmCommands:
             os.remove(SESSION_FILE)
 
 
+class TransactionsDatabase:
+    @staticmethod
+    def record_transaction(transaction_type, account_id, *amount): #should probably private and expose some other method
+
+        today = datetime.today()
+        date_and_time = today.strftime("%b-%d-%Y %H:%M:%S") #gets date 
+        if len(amount) == 1:
+            amount = amount[0]
+        else:
+            amount = None
+        engine, Base, Accounts, Transactions = table_init()
+        data_to_insert = Transactions(type_of_transaction= transaction_type, account_id= account_id, amount_in_transaction= amount, date= date_and_time)
+        with Session(engine) as session:
+            session.add(data_to_insert)
+            session.flush()
+            session.commit()
+
+
+        
 class InternalMethods:
 
     @staticmethod
@@ -187,3 +207,5 @@ class InternalMethods:
     # AtmCommands.create_account(name, lastname, pin)    
 #     pass
     # pass
+# if __name__ == "__main__":
+#     TransactionsDatabase.record_transaction("deposit")
