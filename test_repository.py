@@ -54,7 +54,27 @@ def test_program_should_have_raise_error_if_login_fails():
     with pytest.raises(ValueError, match="PIN is incorrect"):    
         AtmCommands.login(account_id, incorrect_pin)
 
-def test_program_should_correctly_increment_balance_upon_deposit():
+def test_program_should_delete_session_upon_new_login_and_create_new_session():
+    #use create account for new account and login
+    account_id = '2'
+    name = 'Dannah'
+    lastname = 'Hintay'
+    pin = "654321"
+    AtmCommands.create_account(name, lastname, pin)
+    AtmCommands.login(account_id, pin)
+
+    config_data.read(SESSION_FILE)
+    option = config_data["account"]
+    for data in option:
+        if data == 'id':
+            active_id = option.get(data)
+
+
+    assert active_id == '2'
+
+    AtmCommands.login('1', '123456') # returns active session to account_id 1
+
+def test_program_should_correctly_increment_balance_upon_deposit(): #active session is account_id 1 from here
     deposit_amount = '10000'
     AtmCommands.deposit(deposit_amount)
     engine, Base, Accounts, Transactions = table_init()
@@ -95,21 +115,33 @@ def test_program_should_deduct_balance_after_pay_bills(monkeypatch):
     assert retrieved_data.balance == '8000'
 
 def test_program_should_return_transaction_details_during_withdraw_or_pay():
+    withdraw_amount = 1000
+    id, old_balance, new_balance = AtmCommands.withdraw(withdraw_amount)
+    assert id == '1'
+    assert old_balance == '8000'
+    assert new_balance == '7000'
 
-    pass
 def test_program_should_correctly_retrieve_balance_from_database():
+    current_balance = AtmCommands.check_balance()
+    assert current_balance == '7000'
 
-    #assert retrieved_data.balance == '8000'
-    pass
 
 def test_program_should_correctly_store_new_pin_after_changing_pin():
-    raise NotImplementedError
+    pin = '567890'
+    AtmCommands.change_pin(pin)
+    engine, Base, Accounts, Transactions = table_init()
+    with Session(engine) as session:
+        retrieved_data = session.get(Accounts, 1)
+        new_pin = retrieved_data.pin
 
-def test_program_should_decuct_amount_after_pay_bills_function():
-    raise NotImplementedError
+    assert new_pin == '567890'
 
 def test_logout_should_delete_session_file():
-    raise NotImplementedError
+    before_delete: bool = os.path.exists(SESSION_FILE)
+    AtmCommands.logout()
+    after_delete: bool = os.path.exists(SESSION_FILE)
+    assert before_delete #session exists before deleting
+    assert not after_delete #session is deleted after calling logout
 
 def test_check_if_test_transactions_are_recorded():
     raise NotImplementedError
@@ -121,8 +153,8 @@ def test_clean_up():
             os.remove(SESSION_FILE)
             
         if os.path.exists("test.db"):
-            #os.remove("test.db")  #idk how to fix. DBAPI connection is not closed upon closing of session
-            pass
+            os.remove("test.db")  #idk how to fix. DBAPI connection is not closed upon closing of session
+            
     finally:
         make_config(ATM_DB, SESSION_FILE) #reverts settings to original
     #assert False

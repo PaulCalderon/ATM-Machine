@@ -1,3 +1,4 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, DeclarativeBase
 from sqlalchemy import String, ForeignKey
@@ -57,6 +58,7 @@ class AtmCommands:
     """Methods for ATM Command"""
     @staticmethod
     def login(account_id: str, input_pin:str) -> None:
+
         engine, Base, Accounts, Transactions = table_init()
         with Session(engine) as session:
             retrieved_data = session.get(Accounts, account_id)
@@ -111,12 +113,23 @@ class AtmCommands:
             session.commit()
         
 
-
-    def check_balance(self) -> str:
-        pass
+    @staticmethod
+    def check_balance() -> str:
+        account_id = InternalMethods.get_active_session_id()
+        engine, Base, Accounts, Transactions = table_init()
+        with Session(engine) as session:
+            current_balance = session.get(Accounts, account_id)
+        return current_balance.balance
     
-    def change_pin(self) -> None:
-        pass
+    @staticmethod
+    def change_pin(new_pin: str) -> None:
+        account_id = InternalMethods.get_active_session_id()
+        engine, Base, Accounts, Transactions = table_init()
+        with Session(engine) as session:
+            account_data = session.get(Accounts, account_id)
+            account_data.pin = new_pin
+            session.flush()
+            session.commit()
 
     @staticmethod
     def pay_bills(pay_amount: str) -> str: #TODO diffentiate from withdraw
@@ -134,13 +147,14 @@ class AtmCommands:
             else:
                 raise ValueError("Insufficient Balance")
         return account_id, old_balance, current_balance.balance
-
-    def logout(self)  -> None:
-        pass
-class InternalMethods:
+    
     @staticmethod
-    def get_one():
-        pass
+    def logout()  -> None:
+        if os.path.exists(SESSION_FILE):
+            os.remove(SESSION_FILE)
+
+
+class InternalMethods:
 
     @staticmethod
     def get_active_session_id() -> str:
