@@ -73,6 +73,8 @@ class AtmCommands:
         else:
 
             raise ValueError("PIN is incorrect")
+        transaction_type = "Login"
+        TransactionsDatabase.record_transaction(transaction_type, account_id)
         
     @staticmethod
     def create_account(name: str, lastname: str , pin: str)  -> None:  #can be modified to accept ORM object instead of individual fields
@@ -82,7 +84,11 @@ class AtmCommands:
         with Session(engine) as session:
             session.add(create_user)
             session.flush()
+            account_id = create_user.account_id
             session.commit()
+        transaction_type = "Create Account"
+        
+        TransactionsDatabase.record_transaction(transaction_type, account_id)
 
         
     @staticmethod
@@ -96,11 +102,15 @@ class AtmCommands:
             if int(current_balance.balance) >= withdraw_amount:
                 old_balance = current_balance.balance
                 current_balance.balance = int(current_balance.balance) - withdraw_amount
+                new_balance = str(current_balance.balance)
                 session.commit()
+                
             else:
                 raise ValueError("Insufficient Balance")
             #ask to print recipt
-            return account_id, old_balance, current_balance.balance
+        transaction_type = "Withdraw"
+        TransactionsDatabase.record_transaction(transaction_type, account_id, withdraw_amount)
+        return account_id, old_balance, new_balance
         
 
     @staticmethod
@@ -112,6 +122,8 @@ class AtmCommands:
             deposit_balance.balance = deposit_amount
             session.flush()
             session.commit()
+        transaction_type = "Deposit"
+        TransactionsDatabase.record_transaction(transaction_type, account_id, deposit_amount)
         
 
     @staticmethod
@@ -120,8 +132,11 @@ class AtmCommands:
         engine, Base, Accounts, Transactions = table_init()
         with Session(engine) as session:
             current_balance = session.get(Accounts, account_id)
+        transaction_type = "Check Balance"
+        
+        TransactionsDatabase.record_transaction(transaction_type, account_id)
         return current_balance.balance
-    
+
     @staticmethod
     def change_pin(new_pin: str) -> None:
         account_id = InternalMethods.get_active_session_id()
@@ -131,6 +146,9 @@ class AtmCommands:
             account_data.pin = new_pin
             session.flush()
             session.commit()
+
+        transaction_type = "Change Pin"
+        TransactionsDatabase.record_transaction(transaction_type, account_id)
 
     @staticmethod
     def pay_bills(pay_amount: str) -> str: #TODO diffentiate from withdraw
@@ -143,16 +161,24 @@ class AtmCommands:
             if int(current_balance.balance) >= pay_amount:
                 old_balance = current_balance.balance
                 current_balance.balance = int(current_balance.balance) - pay_amount
+                new_balance = str(current_balance.balance)
                 session.commit()
                     #call receipt function
             else:
                 raise ValueError("Insufficient Balance")
-        return account_id, old_balance, current_balance.balance
+            
+        transaction_type = "Change Pin"
+        TransactionsDatabase.record_transaction(transaction_type, account_id, pay_amount)
+        return account_id, old_balance, new_balance
     
     @staticmethod
     def logout()  -> None:
         if os.path.exists(SESSION_FILE):
+            account_id = InternalMethods.get_active_session_id()
             os.remove(SESSION_FILE)
+        transaction_type = "Logout"
+        TransactionsDatabase.record_transaction(transaction_type, account_id)
+        
 
 
 class TransactionsDatabase:
@@ -184,9 +210,9 @@ class InternalMethods:
             if data == 'id':
                 return option.get(data)
 
-    @staticmethod
-    def receipt_output(id: str, old_balance: str, new_balance: str):
-        return id, old_balance, new_balance
+    # @staticmethod
+    # def receipt_output(id: str, old_balance: str, new_balance: str):
+    #     return id, old_balance, new_balance
     
         # receipt_answer = input("Do you want a receipt? (y/n) ")
         # if receipt_answer in ['y',  'Y']:
@@ -204,7 +230,7 @@ class InternalMethods:
     # name = "erjw"
     # lastname = "aso"
     # pin = "123543"
-    # AtmCommands.create_account(name, lastname, pin)    
+    # AtmCommands.withdraw('100')
 #     pass
     # pass
 # if __name__ == "__main__":

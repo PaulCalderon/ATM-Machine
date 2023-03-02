@@ -89,7 +89,7 @@ class TestAtmCommands:
         with pytest.raises(ValueError, match="Insufficient Balance"):    
             AtmCommands.withdraw(withdraw_amount)
 
-    def test_program_should_deduct_balance_after_withdraw(self, monkeypatch):
+    def test_program_should_deduct_balance_after_withdraw(self):
         withdraw_amount = '1000'
         #monkeypatch.setattr('builtins.input', lambda _: "y") #monkeypatch to mock entering input
         AtmCommands.withdraw(withdraw_amount)
@@ -105,7 +105,7 @@ class TestAtmCommands:
         with pytest.raises(ValueError, match="Insufficient Balance"):
             AtmCommands.pay_bills(pay_amount)
 
-    def test_program_should_deduct_balance_after_pay_bills(self, monkeypatch):
+    def test_program_should_deduct_balance_after_pay_bills(self):
         withdraw_amount = '1000'
         #monkeypatch.setattr('builtins.input', lambda _: "y") #monkeypatch to mock entering input
         AtmCommands.withdraw(withdraw_amount)
@@ -124,6 +124,7 @@ class TestAtmCommands:
 
     def test_program_should_correctly_retrieve_balance_from_database(self):
         current_balance = AtmCommands.check_balance()
+
         assert current_balance == '7000'
 
 
@@ -156,7 +157,12 @@ class TestTransactionDatabase:
     
     def test_check_if_transactions_are_recorded_correctly(self):
         #test past transactions if they were recorded
-        raise NotImplementedError
+        engine, Base, Accounts, Transactions = table_init()
+        with Session(engine) as session:
+            first_transaction = session.get(Transactions, 1 )
+        assert first_transaction.account_id == 1
+        assert first_transaction.type_of_transaction == 'Create Account'
+        
         
     
 
