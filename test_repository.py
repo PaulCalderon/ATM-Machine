@@ -1,6 +1,6 @@
 import pytest
 from sqlalchemy.orm import Session, DeclarativeBase
-
+from io import StringIO
 import configparser
 import os
 
@@ -41,7 +41,7 @@ def test_program_should_have_details_in_login_in_the_session_file():
 
     AtmCommands.login(account_id, pin)
 
-    config_data.read("session.txt")
+    config_data.read(SESSION_FILE)
     option = config_data["account"]
     for data in option:
         if data == 'id':
@@ -64,16 +64,43 @@ def test_program_should_correctly_increment_balance_upon_deposit():
     assert deposit_amount == retrieved_data.balance
 
 def test_program_should_raise_error_if_balance_is_insufficient_upon_withdraw():
-    raise NotImplementedError
+    withdraw_amount = '100000'
+    with pytest.raises(ValueError, match="Insufficient Balance"):    
+        AtmCommands.withdraw(withdraw_amount)
 
+def test_program_should_deduct_balance_after_withdraw(monkeypatch):
+    withdraw_amount = '1000'
+    #monkeypatch.setattr('builtins.input', lambda _: "y") #monkeypatch to mock entering input
+    AtmCommands.withdraw(withdraw_amount)
+    engine, Base, Accounts, Transactions = table_init()
+    
+    with Session(engine) as session:
+
+        retrieved_data = session.get(Accounts, 1)
+
+    assert retrieved_data.balance == '9000'
 def test_program_should_raise_error_if_balance_is_insufficient_upon_paying_bills():
-    raise NotImplementedError
+    pay_amount = '10000'
+    with pytest.raises(ValueError, match="Insufficient Balance"):
+        AtmCommands.pay_bills(pay_amount)
 
-def test_program_should_deduct_balance_after_withdraw():
-    raise NotImplementedError
+def test_program_should_deduct_balance_after_pay_bills(monkeypatch):
+    withdraw_amount = '1000'
+    #monkeypatch.setattr('builtins.input', lambda _: "y") #monkeypatch to mock entering input
+    AtmCommands.withdraw(withdraw_amount)
+    engine, Base, Accounts, Transactions = table_init()
+    
+    with Session(engine) as session:
+        retrieved_data = session.get(Accounts, 1)
+    assert retrieved_data.balance == '8000'
 
+def test_program_should_return_transaction_details_during_withdraw_or_pay():
+
+    pass
 def test_program_should_correctly_retrieve_balance_from_database():
-    raise NotImplementedError
+
+    #assert retrieved_data.balance == '8000'
+    pass
 
 def test_program_should_correctly_store_new_pin_after_changing_pin():
     raise NotImplementedError
@@ -82,6 +109,9 @@ def test_program_should_decuct_amount_after_pay_bills_function():
     raise NotImplementedError
 
 def test_logout_should_delete_session_file():
+    raise NotImplementedError
+
+def test_check_if_test_transactions_are_recorded():
     raise NotImplementedError
 
 def test_clean_up():

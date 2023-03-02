@@ -56,7 +56,7 @@ def table_init():
 class AtmCommands:
     """Methods for ATM Command"""
     @staticmethod
-    def login(account_id, input_pin):
+    def login(account_id: str, input_pin:str) -> None:
         engine, Base, Accounts, Transactions = table_init()
         with Session(engine) as session:
             retrieved_data = session.get(Accounts, account_id)
@@ -67,13 +67,12 @@ class AtmCommands:
             config.set("account", "id", account_id)
             with open(SESSION_FILE, 'w') as example:
                 config.write(example)
-
         else:
 
             raise ValueError("PIN is incorrect")
         
     @staticmethod
-    def create_account(name, lastname, pin):  #can be modified to accept ORM object instead of individual fields
+    def create_account(name: str, lastname: str , pin: str)  -> None:  #can be modified to accept ORM object instead of individual fields
 
         engine, Base, Accounts, Transactions = table_init()
         create_user = Accounts(name=name, lastname=lastname, pin=pin)
@@ -84,41 +83,93 @@ class AtmCommands:
 
         
     @staticmethod
-    def withdraw():
-        pass
+    def withdraw(withdraw_amount: str) -> str:
+        account_id = InternalMethods.get_active_session_id()
+        withdraw_amount = int(withdraw_amount)
 
-    @staticmethod
-    def deposit(deposit_amount):
         engine, Base, Accounts, Transactions = table_init()
         with Session(engine) as session:
-            deposit_balance = session.get(Accounts, 1)
+            current_balance = session.get(Accounts, account_id) 
+            if int(current_balance.balance) >= withdraw_amount:
+                old_balance = current_balance.balance
+                current_balance.balance = int(current_balance.balance) - withdraw_amount
+                session.commit()
+            else:
+                raise ValueError("Insufficient Balance")
+            #ask to print recipt
+            return account_id, old_balance, current_balance.balance
+        
+
+    @staticmethod
+    def deposit(deposit_amount: str) -> None:
+        account_id = InternalMethods.get_active_session_id()
+        engine, Base, Accounts, Transactions = table_init()
+        with Session(engine) as session:
+            deposit_balance = session.get(Accounts, account_id)
             deposit_balance.balance = deposit_amount
             session.flush()
             session.commit()
         
 
 
-    def check_balance(self):
+    def check_balance(self) -> str:
+        pass
+    
+    def change_pin(self) -> None:
         pass
 
-    def change_pin(self):
-        pass
+    @staticmethod
+    def pay_bills(pay_amount: str) -> str: #TODO diffentiate from withdraw
+        account_id = InternalMethods.get_active_session_id()
+        pay_amount = int(pay_amount)
 
-    def pay_bills(self):
-        pass
+        engine, Base, Accounts, Transactions = table_init()
+        with Session(engine) as session:
+            current_balance = session.get(Accounts, account_id) 
+            if int(current_balance.balance) >= pay_amount:
+                old_balance = current_balance.balance
+                current_balance.balance = int(current_balance.balance) - pay_amount
+                session.commit()
+                    #call receipt function
+            else:
+                raise ValueError("Insufficient Balance")
+        return account_id, old_balance, current_balance.balance
 
-    def logout(self):
+    def logout(self)  -> None:
         pass
 class InternalMethods:
     @staticmethod
     def get_one():
         pass
 
-if __name__ == "__main__":
+    @staticmethod
+    def get_active_session_id() -> str:
+        config_data.read(SESSION_FILE)
+        option = config_data["account"]
+        for data in option:
+            if data == 'id':
+                return option.get(data)
+
+    @staticmethod
+    def receipt_output(id: str, old_balance: str, new_balance: str):
+        return id, old_balance, new_balance
+    
+        # receipt_answer = input("Do you want a receipt? (y/n) ")
+        # if receipt_answer in ['y',  'Y']:
+        #     print("Receipt Printed")
+        # elif receipt_answer in ['n' or 'N']:
+        #     print("Account ID =", id)
+        #     print("Old Balance =", old_balance)
+        #     print("Current Balance =", new_balance)
+        #     print("Data =") #TODO implement date and time
+
+
+# if __name__ == "__main__":
+#     InternalMethods.receipt_output("1", "2000", "1000")
     # print(ATM_DB)
-    name = "erjw"
-    lastname = "aso"
-    pin = "123543"
-    AtmCommands.create_account(name, lastname, pin)    
+    # name = "erjw"
+    # lastname = "aso"
+    # pin = "123543"
+    # AtmCommands.create_account(name, lastname, pin)    
 #     pass
     # pass
