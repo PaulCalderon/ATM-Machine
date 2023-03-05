@@ -13,62 +13,90 @@ The program was developed under the following versions:
 >Pytest 7.2.1
 
 
-```bash
+```
 pip install SQLAlchemy
 pip install pytest
 ```
+
 
 ## Usage
 
 **Call from CMD/Shell**
 ```
-ATM_API.py <command>
+ATM_API.py <command> <flags>
 ```
+*Commands are case-insensitve**
+
+Only Login, Create Account, Help and Logout are available if no session file is found
+
+Main handles all the logic for verifying valid inputs and interacting with user
+ATM_Repository handles all database transactions and return data to Main
+ATM_repository assumes that all received values are valid for querying
 
 ### **Available commands**
+> **Login**
+Input: ID and 6 Digit Pin
+Creates a session file upon sucessful login
 
->> **Create Account**
-Name, Last Name, 6 Digit PIN
+
+
+> **Create** Account
+Input: Name, Last Name, 6 Digit PIN
 Accounts to be recorded under Accounts Table
 Record account creation in Transactions table 
 
->> **Withdraw**
-Input: ID and PIN then ask for amount to be withdrawn
+> **Withdraw**
+There should be an active session
+Input: Amount to be withdrawn
 Amount should be less than or equal to current and divisible by 100
 Ask if receipt should be printed or to display current remaining balance 
 Call withdraw_receipt() if ask to be printed
 
->> **Deposit** #implemented for the sake of being a test project #should be handled by different system
-Input: ID and PIN then ask for amount to be deposited
+> **Deposit** #implemented for the sake of being a test project #should be handled by different system
+There should be an active session
+Input Amount to be deposited
 Amount should be integer and divisible by 100
 Ask if receipt should be printed or to display current remaining balance 
 Call withdraw_receipt() if ask to be printed
 
->> **Check Balance**
+> **Check** Balance
+There should be an active session
 To display current balance 
-Change Pin 
-Input: ID and PIN 
-Ask for new PIN
 
->> **Pay Bills (Simplified)**
-Ask for amount to be paid 
+> **Change** Pin
+There should be an active session
+Input: New PIN
+Updates PIN in database
+
+> **Pay** Bills (Simplified)
+There should be an active session
+Input: Amount to be paid 
 Amount should be less than or equal to current 
 Ask if receipt should be printed or to display current remaining balance 
 Call withdraw_receipt() if ask to be printed
 
->> **Help**
+> Check **History**
+There should be an active session
+Retrieves and displays past transactions of active session
+
+> **Help**
 Displays help prompt
-Help prompt is the available commands
+Help prompt is the available commands.
+Displayed commands will changed based on the presence of session file
+
+> **Logout**
+If existing, session file will be deleted
 
 
 
 ##### Config File
 The config file (config.ini) contains configurable options for the program
-- User_Table = *name of table here*
-- Transaction_Table = *name of table here*
+- User_Table = *name of table here* | defaults to *User*
+- Transaction_Table = *name of table here* | defaults to *Transaction*
+- Session_file = *name of text file containing info about session* (should be encrypted in production I think) | defaults to *session.txt*
 
 
-##### **def withdraw_receipt()** - could be receipt only to accommodate withdraw and paybills
+##### **def receipt_output()** - could be receipt only to accommodate withdraw and paybills
 Output is 
 >ID
 Old Balance
@@ -77,7 +105,7 @@ Date
 
 
 ### Table Schema 
-[![](https://mermaid.ink/img/pako:eNptUU1rwzAM_StGx9Bedwi7bIRB2QeF9Wgwmq1mYrFdbGcQsvz3OR8j6ah8kC29Jz1ZPWhvCErQDcZYMdYBrXQi24PWvnUpivuf_V6cArqIOrF3Mp8Jvg32M2m0Q6X8WaU1J4pjYIuhE8_UFStw6aAOlSiefCCu3T_EqbvQWGzTSGz4dqKzu8oX354NfjS0qVNhooU4zG4e4G_G_rao27Lf0NL6esGY1HXoTlVcc1JHdmvwERt0eqMCdmApWGSTv38SICF9Ui4EZb4aDF8SpBsyDtvk3zunoUyhpR20F5MHWrYF5RmbmKNkOPnwuuxzdMMvpPOXMQ?type=png)](https://mermaid.live/edit#pako:eNptUU1rwzAM_StGx9Bedwi7bIRB2QeF9Wgwmq1mYrFdbGcQsvz3OR8j6ah8kC29Jz1ZPWhvCErQDcZYMdYBrXQi24PWvnUpivuf_V6cArqIOrF3Mp8Jvg32M2m0Q6X8WaU1J4pjYIuhE8_UFStw6aAOlSiefCCu3T_EqbvQWGzTSGz4dqKzu8oX354NfjS0qVNhooU4zG4e4G_G_rao27Lf0NL6esGY1HXoTlVcc1JHdmvwERt0eqMCdmApWGSTv38SICF9Ui4EZb4aDF8SpBsyDtvk3zunoUyhpR20F5MHWrYF5RmbmKNkOPnwuuxzdMMvpPOXMQ)
+[![](https://mermaid.ink/img/pako:eNptUcFqwzAM_RWjY2h_IOzSEgahWym0R4PRbLUzi-1iO4WQ5d_nNClOR-WDLOn5PcnqQTpFUIJsMIRK48Wj4ZYl20jpWhsDe_tdr9nJow0oo3aWp3OHL5P99Gi0uhLuLGKuseLgtUHfsR11RQaeuiuN0AUNy9WNGeWFtk_14ua0wq-GFjxzp6KuWPHuPOmL_adUYaSZepjcNMBjxv412eu292goRx8YonhOHep9DrbYoJULdViBIW9Qq_Ttd2EO8ZsSAZTpqtD_cOB2SDhsozt2VkIZfUsraK8qDTJvCcozNiFlSeno_Oe8x9ENf_-6lAw?type=png)](https://mermaid.live/edit#pako:eNptUcFqwzAM_RWjY2h_IOzSEgahWym0R4PRbLUzi-1iO4WQ5d_nNClOR-WDLOn5PcnqQTpFUIJsMIRK48Wj4ZYl20jpWhsDe_tdr9nJow0oo3aWp3OHL5P99Gi0uhLuLGKuseLgtUHfsR11RQaeuiuN0AUNy9WNGeWFtk_14ua0wq-GFjxzp6KuWPHuPOmL_adUYaSZepjcNMBjxv412eu292goRx8YonhOHep9DrbYoJULdViBIW9Qq_Ttd2EO8ZsSAZTpqtD_cOB2SDhsozt2VkIZfUsraK8qDTJvCcozNiFlSeno_Oe8x9ENf_-6lAw)
 ##### Accounts
 1. Account ID (Primary ID) #should actually be the account number but for the purposes of being a test project this is just the auto generated primary key of the database.
 2. Name
@@ -92,5 +120,15 @@ Date
 4. Amount in Transaction (If Applicable) (voidable)
 5. Date 
 
-
-
+## Testing
+The tests were developed using pytest and included in the program files. 
+The package **pytest** should be installed in the environment
+The tests can be run by entering in the console:
+```
+pytest
+```
+while in the root directory of the program
+Running the tests will close active sessions, if any
+The following files contain the testing codes
+> test_repository.py
+> test_main.py
