@@ -1,7 +1,7 @@
 import pytest
 import os
 import configparser
-from main import check_input, command_parser
+from ATM_API import check_input, command_parser
 
 
 CONFIG = "config.ini"
@@ -18,10 +18,12 @@ class TestCLIHandlingOfMain:
     """Class for grouping tests"""
     def test_program_should_raise_error_if_command_is_invalid(self):
         """ To be implemented by creating a method in main to check if command is valid"""
-        with pytest.raises(ValueError, match="Command is invalid") as exc_info:
-            check_input("")
+        command = ""
+        command = command.lower()
+        with pytest.raises(ValueError, match=f"{command}command is invalid") as exc_info:
+            check_input(command)
         assert exc_info.type is ValueError
-        assert exc_info.value.args[0] == "Command is invalid"
+        assert exc_info.value.args[0] == f"{command} command is invalid"
 
     def test_program_commands_should_be_case_insensitive(self):
         """ Checking method should be case insentive and not raise error"""
@@ -44,11 +46,12 @@ class TestCLIHandlingOfMain:
         """Will check for prescence of session file before accepting any other commands"""
         if os.path.exists(SESSION_FILE):
             os.remove(SESSION_FILE)
-
-        with pytest.raises(ValueError, match="Command is invalid") as exc_info:
-            check_input("Check Balance")
+        command = "Check Balance"
+        with pytest.raises(ValueError, match=f"{command} command is invalid") as exc_info:
+            check_input(command)
         assert exc_info.type is ValueError
-        assert exc_info.value.args[0] == "Command is invalid"
+        assert exc_info.value.args[0] == f"{command} command is invalid"
+        
 
     def test_program_should_raise_value_error_if_flags_are_invalid_create(self):
         """assumes that check_input is correct"""

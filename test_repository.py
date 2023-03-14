@@ -1,27 +1,31 @@
-import pytest
-from sqlalchemy.orm import Session, DeclarativeBase
-from io import StringIO
-import configparser
+import sys
 import os
-from ATM_Repository import AtmCommands, TransactionsDatabase, table_init
+import configparser
+import pytest
+from sqlalchemy.orm import Session
 from configmaker import make_config
-
+from ATM_Repository import AtmCommands, TransactionsDatabase, table_init
 
 CONFIG = "config.ini"
 config_data = configparser.ConfigParser()
 config_data.read(CONFIG)
-option = config_data["options"]
-for data in option: # gets config option for session_file
-    if data == 'session_file':
-        SESSION_FILE = option.get(data)
-    if data =='atm_table':
-        ATM_DB = option.get(data)
+SESSION_FILE = ""
+ATM_DB = ""
 
-
-make_config("test.db", "session.txt") # changes database to test.db
 
 
 class TestAtmCommands:
+    """tests for atm commands"""
+    def test_initial_setup(self): 
+        option = config_data["options"]
+        for data in option: # gets config option for session_file
+            if data == 'session_file':
+                global SESSION_FILE 
+                SESSION_FILE = option.get(data)
+            if data =='atm_table':
+                global ATM_DB 
+                ATM_DB = option.get(data)
+        make_config("test.db", "session.txt", sys.argv[0])
 
     def test_program_should_create_entry_upon_calling_the_function(self):
         name = "Paul"
@@ -37,18 +41,16 @@ class TestAtmCommands:
         assert submitted_data.name == retrieved_data.name
         assert submitted_data.lastname == retrieved_data.lastname
         assert submitted_data.pin == retrieved_data.pin
-        
+
     def test_program_should_have_details_in_login_in_the_session_file(self):
         account_id = "1"
         pin = "123456"
-
         AtmCommands.login(account_id, pin)
-
         config_data.read(SESSION_FILE)
-        option = config_data["account"]
-        for data in option:
-            if data == 'id':
-                active_id = option.get(data)
+        options = config_data["account"]
+        for data_id in options:
+            if data_id == 'id':
+                active_id = options.get(data_id)
         assert active_id == '1'
 
     def test_program_should_have_raise_error_if_login_fails(self):
@@ -67,24 +69,24 @@ class TestAtmCommands:
         AtmCommands.login(account_id, pin)
 
         config_data.read(SESSION_FILE)
-        option = config_data["account"]
-        for data in option:
-            if data == 'id':
-                active_id = option.get(data)
-
-
+        options = config_data["account"]
+        for data_id in options:
+            if data_id == 'id':
+                active_id = options.get(data_id)
         assert active_id == '2'
 
         AtmCommands.login('1', '123456') # returns active session to account_id 1
 
     def test_program_should_correctly_increment_balance_upon_deposit(self): #active session is account_id 1 from here
-        deposit_amount = '10000'
+        deposit_amount = '5000'
+        AtmCommands.deposit(deposit_amount)
+        deposit_amount = '5000' #to test twice in a row
         AtmCommands.deposit(deposit_amount)
         engine, Base, Accounts, Transactions = table_init()
         with Session(engine) as session:
             retrieved_data = session.get(Accounts, 1)
         
-        assert deposit_amount == retrieved_data.balance
+        assert '10000' == retrieved_data.balance
 
     def test_program_should_raise_error_if_balance_is_insufficient_upon_withdraw(self):
         withdraw_amount = '100000'
@@ -174,10 +176,11 @@ def test_clean_up():
             
         if os.path.exists("test.db"):
             os.remove("test.db")  #idk how to fix. DBAPI connection is not closed upon closing of session #fixed by changing setting of SQLalchemy to nullpool
+        # pass
             
             
     finally:
-        make_config(ATM_DB, SESSION_FILE) #reverts settings to original
+        make_config(ATM_DB, SESSION_FILE, "EOF"+sys.argv[0]) #reverts settings to original
         
     #assert False
 
