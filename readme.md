@@ -9,9 +9,7 @@ It is recommented to install the packages in a virtual environment
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install the below packages.
 The program was developed under the following versions:
 > Python3 3.11.0
-
 > SQLalchemy 2.04
-
 > Pytest 7.2.1
 
 
