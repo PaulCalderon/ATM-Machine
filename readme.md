@@ -8,9 +8,9 @@ The backend database is sqlite3 and interfaced via ORM using SQLalchemy.
 It is recommented to install the packages in a virtual environment
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install the below packages.
 The program was developed under the following versions:
->Python3 3.11.0
->SQLalchemy 2.04
->Pytest 7.2.1
+> Python3 3.11.0
+> SQLalchemy 2.04
+> Pytest 7.2.1
 
 
 ```
@@ -34,58 +34,57 @@ ATM_Repository handles all database transactions and return data to Main
 ATM_repository assumes that all received values are valid for querying
 
 ### **Available commands**
-> **Login**
+> **Login** - ATM_API.py login -u <ID> -p <PIN>
 Input: ID and 6 Digit Pin
 Creates a session file upon sucessful login
 
-
-
-> **Create** Account
+> **Create** Account - ATM_API.py create -n <FIRST NAME> -l <LAST NAME> -p <PIN>
 Input: Name, Last Name, 6 Digit PIN
 Accounts to be recorded under Accounts Table
 Record account creation in Transactions table 
 
-> **Withdraw**
+> **Withdraw** - ATM_API.py withdraw -a <AMOUNT>
 There should be an active session
 Input: Amount to be withdrawn
 Amount should be less than or equal to current and divisible by 100
 Ask if receipt should be printed or to display current remaining balance 
 Call withdraw_receipt() if ask to be printed
 
-> **Deposit** #implemented for the sake of being a test project #should be handled by different system
+> **Deposit** - ATM_API.py deposit -a <AMOUNT>
+#implemented for the sake of being a test project #should be handled by different system 
 There should be an active session
 Input Amount to be deposited
 Amount should be integer and divisible by 100
 Ask if receipt should be printed or to display current remaining balance 
 Call withdraw_receipt() if ask to be printed
 
-> **Check** Balance
+> **Check** Balance - ATM_API.py check
 There should be an active session
 To display current balance 
 
-> **Change** Pin
+> **Change** Pin - ATM_API.py change -p <NEW PIN>
 There should be an active session
 Input: New PIN
 Updates PIN in database
 
-> **Pay** Bills (Simplified)
+> **Pay** Bills (Simplified) - ATM_API.py -a <AMOUNT>
 There should be an active session
 Input: Amount to be paid 
 Amount should be less than or equal to current 
 Ask if receipt should be printed or to display current remaining balance 
 Call withdraw_receipt() if ask to be printed
 
-> Check **History**
+> Check **History** - ATM_API.py history
 There should be an active session
 Retrieves and displays past transactions of active session
 
-> **Help**
-Displays help prompt
+> **Help** - ATM_API.py help
+Displays help prompt 
 Help prompt is the available commands.
 Displayed commands will changed based on the presence of session file
 
-> **Logout**
-If existing, session file will be deleted
+> **Logout** - ATM_API.py logout
+If existing, session will end and session file will be deleted
 
 
 
@@ -99,9 +98,9 @@ The config file (config.ini) contains configurable options for the program
 ##### **def receipt_output()** - could be receipt only to accommodate withdraw and paybills
 Output is 
 >ID
-Old Balance
-New Balance
-Date 
+>Old Balance
+>New Balance
+>Date 
 
 
 ### Table Schema 
@@ -128,7 +127,9 @@ The tests can be run by entering in the console:
 pytest
 ```
 while in the root directory of the program
-Running the tests will close active sessions, if any
+Running the tests will create a temporary database file and close active sessions, if any
 The following files contain the testing codes
 > test_repository.py
-> test_main.py
+> test_ATM_API.py
+
+
