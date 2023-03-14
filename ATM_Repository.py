@@ -1,19 +1,14 @@
 import os
+from typing import List, Optional
+from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, DeclarativeBase
 from sqlalchemy import String, ForeignKey
-from typing import List, Optional
-from typing import Optional
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from sqlalchemy.pool import NullPool
 import configparser
-from datetime import datetime
-
-#TODO HELP() will check if session file is present before choosing appropriate help prompt
-#TODO use config parser to create the session file with details
-
 
 CONFIG = "config.ini"  #had a problem here. Ano best way to deal with getting settings from config file
 config_data = configparser.ConfigParser()
@@ -25,9 +20,9 @@ for data in option: # gets config option for session_file
     if data =='atm_table':
         ATM_DB = option.get(data)
 
+
 def table_init():
-    #print(ATM_DB)
-    InternalMethods.get_updated_config() #work around for tests
+    InternalMethods.get_updated_config() #work around for tests #fetches latest config data
     engine = create_engine("sqlite+pysqlite:///" + ATM_DB, echo=False, poolclass=NullPool)
     class Base(DeclarativeBase):
         pass
@@ -51,10 +46,7 @@ def table_init():
         accounts: Mapped[Accounts] = relationship(back_populates="transaction")
     with Session(engine) as session:
         Base.metadata.create_all(engine)
-    #     session.flush()
-    #     session.commit()
-    # with Session(engine) as session:
-    #     Base.metadata.create_all(engine)
+
     return engine, Base, Accounts, Transactions
 
 class AtmCommands:
@@ -88,7 +80,6 @@ class AtmCommands:
             account_id = create_user.account_id
             session.commit()
         transaction_type = "Create Account"
-
         TransactionsDatabase.record_transaction(transaction_type, account_id)
 
     @staticmethod
@@ -114,10 +105,11 @@ class AtmCommands:
     @staticmethod
     def deposit(deposit_amount: str) -> None:
         account_id = InternalMethods.get_active_session_id()
+        deposit_amount = int(deposit_amount)
         engine, Base, Accounts, Transactions = table_init()
         with Session(engine) as session:
             deposit_balance = session.get(Accounts, account_id)
-            deposit_balance.balance = deposit_amount
+            deposit_balance.balance = deposit_amount + int(deposit_balance.balance or 0)
             session.flush()
             session.commit()
         transaction_type = "Deposit"
@@ -160,7 +152,6 @@ class AtmCommands:
                 current_balance.balance = int(current_balance.balance) - pay_amount
                 new_balance = str(current_balance.balance)
                 session.commit()
-                    #call receipt function
             else:
                 raise ValueError("Insufficient Balance")
 
@@ -179,7 +170,6 @@ class AtmCommands:
 class TransactionsDatabase:
     @staticmethod
     def record_transaction(transaction_type, account_id, *amount): #should probably private and expose some other method
-
         today = datetime.today()
         date_and_time = today.strftime("%b-%d-%Y %H:%M:%S") #gets date 
         if len(amount) == 1:
@@ -214,35 +204,3 @@ class InternalMethods:
             if data =='atm_table':
                 global ATM_DB
                 ATM_DB = option.get(data)
-
-
-
-    
-
-
-
-    # @staticmethod
-    # def receipt_output(id: str, old_balance: str, new_balance: str):
-    #     return id, old_balance, new_balance
-    
-        # receipt_answer = input("Do you want a receipt? (y/n) ")
-        # if receipt_answer in ['y',  'Y']:
-        #     print("Receipt Printed")
-        # elif receipt_answer in ['n' or 'N']:
-        #     print("Account ID =", id)
-        #     print("Old Balance =", old_balance)
-        #     print("Current Balance =", new_balance)
-        #     print("Data =") #TODO implement date and time
-
-
-# if __name__ == "__main__":
-#     InternalMethods.receipt_output("1", "2000", "1000")
-    # print(ATM_DB)
-    # name = "erjw"
-    # lastname = "aso"
-    # pin = "123543"
-    # AtmCommands.withdraw('100')
-#     pass
-    # pass
-# if __name__ == "__main__":
-#     TransactionsDatabase.record_transaction("deposit")
