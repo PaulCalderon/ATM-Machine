@@ -25,7 +25,8 @@ def check_input(command: list) -> str | None:  # should raise exception if error
     if command.lower() in command_list:
         return command.lower()
     else:
-        raise ValueError("Command is invalid")
+        error_string = f"{command} command is invalid"
+        raise ValueError(error_string)
 
 def command_parser(command: str, *flags: list | None) -> None:
     """has logic for selecting correct action based on parsed command"""
@@ -44,7 +45,7 @@ def command_parser(command: str, *flags: list | None) -> None:
                 raise ValueError("Incorrect Flags")
 
             for option, argument in flag:
-                if option == '-n':
+                if option == '-u':
                     account_id = argument
                 elif option == '-p':
                     pin = argument
@@ -80,22 +81,23 @@ def command_parser(command: str, *flags: list | None) -> None:
             if os.path.exists(SESSION_FILE):
 
                 print("Available Commands:")
-                print("Create - Creates a new account - login -u <ID> -p <PIN>") 
-                print("Login - Login to your account and start a session")
-                print("Withdraw - Withdraw from available balance")
-                print("Deposit - Deposits amount to balance")
-                print("Check - Checks available balance")
-                print("Change - Changes PIN")
-                print("Pay - Pay bills")
-                print("History - Displays past transaction")
-                print("Logout - End current session")
-                print("Help - Displays this help prompt")
+                print("Create - Creates a new account - ATM_API.py create -n <FIRST NAME> -l <LAST NAME> -p <PIN>")
+                print("Login - Login to your account and start a session - ATM_API.py login -u <ID> -p <PIN> ")
+                print("Withdraw - Withdraw from available balance - ATM_API.py withdraw -a <AMOUNT>")
+                print("Deposit - Deposits amount to balance - ATM_API.py deposit -a <AMOUNT>")
+                print("Check - Checks available balance - ATM_API.py check")
+                print("Change - Changes PIN - ATM_API.py change -p <NEW PIN>")
+                print("Pay - Pay bills - ATM_API.py -a <AMOUNT>")
+                print("History - Displays past transaction - ATM_API.py history")
+                print("Logout - End current session - ATM_API.py logout")
+                print("Help - Displays this help prompt  - ATM_API.py help")
 
             else:
                 print("Available Commands:")
-                print("Create - Creates a new account - main.py login -u <ID> -p <PIN>")
-                print("Login - Login to your account and start a session")
-                print("Help - Displays this help prompt")
+                print("Create - Creates a new account - ATM_API.py create -n <FIRST NAME> -l <LAST NAME> -p <PIN>")
+                print("Login - Login to your account and start a session - ATM_API.py login -u <ID> -p <PIN> ")
+                print("Help - Displays this help prompt  - ATM_API.py help")
+                print("Login to display more commands")
 
         case 'withdraw': #need to be divisible by 100
             try:
@@ -121,12 +123,16 @@ def command_parser(command: str, *flags: list | None) -> None:
             account_id, old_balance, new_balance = AtmCommands.withdraw(amount)
             print("Would you like to print a receipt? (y/n)") 
             print("Not printing a receipt would display the previous transaction results on your screen")
-            if input() == ('y' / 'Y'):
+            answer = input()
+            if answer == ('y' or 'Y'):
                 print("Receipt Printed")
-            else:
+            elif answer == ('n' or "N"):
                 print("Account ID: ", account_id)
                 print("Old Balance: ", old_balance)
                 print("New Balance: ", new_balance)
+            else:
+                print("Invalid Input")
+            
             
             
             
@@ -187,15 +193,18 @@ def command_parser(command: str, *flags: list | None) -> None:
                         raise ValueError("Amount is invalid")
                     amount = argument
 
-            AtmCommands.pay_bills(amount)
+            account_id, old_balance, new_balance = AtmCommands.pay_bills(amount)
             print("Would you like to print a receipt? (y/n)") 
             print("Not printing a receipt would display the previous transaction results on your screen")
-            if input() == ('y' / 'Y'):
+            answer = input()
+            if answer == ('y' or 'Y'):
                 print("Receipt Printed")
-            else:
+            elif answer == ('n' or "N"):
                 print("Account ID: ", account_id)
                 print("Old Balance: ", old_balance)
                 print("New Balance: ", new_balance)
+            else:
+                print("Invalid Input")
 
         case 'history':
             raise NotImplementedError
